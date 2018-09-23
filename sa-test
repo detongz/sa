@@ -1,0 +1,59 @@
+#!/usr/bin/env python3
+
+import argparse
+import datetime
+import json
+import os
+
+path = []
+output = "/tmp/sa/ncdu-%s.log" % datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+prefix = ""
+
+def getPath(data):
+    path.append(data[0]["name"])
+    for info in data[1:]:
+        if type(info) is list:
+            getPath(info)
+
+        elif "dsize" in info:
+            if int(info["dsize"]) > size:
+                print("%s\t%s%s/%s" %
+                (info["dsize"], prefix, "/".join(path), info["name"]))
+    path.pop()
+
+
+def main():
+    parser = argparse.ArgumentParser(description="List Large Files")
+    parser.add_argument("--version", "-v", action="version",
+                        version="%(prog)s version:0.1")
+    parser.add_argument("--size", "-s",
+                        help="Show file size bigger than specified size",
+                        type = int, default=1e8)
+    parser.add_argument("--dir", "-d", help="Directory to search",
+                        default="/")
+    args = parser.parse_args()
+
+    if not os.path.exists("/tmp/sa"):
+        os.mkdir("/tmp/sa")
+    os.chdir(args.dir)
+    os.system("ncdu -o %s --si" % output)
+
+    global size
+    size = args.size
+    global prefix
+    prefix = "file:/"
+    if args.dir != "/":
+        prefix = "file://"
+    with open(output, "r") as f:
+        a=json.loads("".join(f.readlines()))[-1]
+        getPath(a)
+
+    os.remove(output)
+
+
+if __name__ == '__main__':
+    try:
+        main()
+    except KeyboardInterrupt:
+        if os.path.exists(output):
+            os.remove(output)
