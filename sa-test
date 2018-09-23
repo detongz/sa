@@ -6,8 +6,10 @@ import json
 import os
 
 path = []
-output = "/tmp/sa/ncdu-%s.log" % datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+output = "/tmp/sa/ncdu-%s.log" \
+        % datetime.datetime.now().strftime("%Y%m%d%H%M%S")
 prefix = ""
+
 
 def getPath(data):
     path.append(data[0]["name"])
@@ -18,7 +20,7 @@ def getPath(data):
         elif "dsize" in info:
             if int(info["dsize"]) > size:
                 print("%s\t%s%s/%s" %
-                (info["dsize"], prefix, "/".join(path), info["name"]))
+                      (info["dsize"], prefix, "/".join(path), info["name"]))
     path.pop()
 
 
@@ -27,9 +29,9 @@ def main():
     parser.add_argument("--version", "-v", action="version",
                         version="%(prog)s version:0.1")
     parser.add_argument("--size", "-s",
-                        help="Show file size bigger than specified size",
-                        type = int, default=1e8)
-    parser.add_argument("--dir", "-d", help="Directory to search",
+                        help="Show file size bigger this, default: 1e8",
+                        type=int, default=1e8)
+    parser.add_argument("--dir", "-d", help="Directory to search, default /",
                         default="/")
     args = parser.parse_args()
 
@@ -45,7 +47,7 @@ def main():
     if args.dir != "/":
         prefix = "file://"
     with open(output, "r") as f:
-        a=json.loads("".join(f.readlines()))[-1]
+        a = json.loads("".join(f.readlines()))[-1]
         getPath(a)
 
     os.remove(output)
